@@ -1,0 +1,28 @@
+# --- OS files ---
+.DS_Store
+Thumbs.db
+
+# --- Editor / IDE ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Logs ---
+*.log
+
+# --- Environment files (secrets) ---
+.env
+.env.*
+!.env.example
+
+# --- Dependencies ---
+node_modules/
+
+# --- Build output ---
+dist/
+build/
+
+# --- Misc ---
+*.tmp
+*.bak

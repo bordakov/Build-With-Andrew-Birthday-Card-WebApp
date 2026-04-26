@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Birthday Card Helper</title>
+  <style>
+    body { font-family: Arial, system-ui, sans-serif; max-width:760px; margin:28px auto; padding:12px; color:#222; }
+    label { display:block; margin-top:10px; font-weight:600; }
+    input[type="text"], input[type="number"], textarea { width:100%; padding:8px 10px; margin-top:6px; box-sizing:border-box; border:1px solid #ccc; border-radius:6px; }
+    textarea { min-height:120px; resize:vertical; }
+    button { margin-top:12px; padding:10px 14px; border:none; border-radius:8px; background:#0066cc; color:white; cursor:pointer; }
+    button.secondary { background:#666; }
+    button:disabled { opacity:0.6; cursor:not-allowed; }
+    .row { display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap; }
+    .small { font-size:0.9em; color:#555; }
+    .status { margin-top:12px; color:#444; background:#f7f7f7; padding:10px; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <h1>Birthday Card Helper</h1>
+  <p class="small">Defaults: Jonh, 25, AI. Use the AI instruction field if you want custom guidance.</p>
+
+  <label for="name">Name</label>
+  <input id="name" type="text" />
+
+  <label for="age">Age</label>
+  <input id="age" type="number" min="0" max="150" />
+
+  <label for="hobby">Hobby</label>
+  <input id="hobby" type="text" />
+
+  <div class="row">
+    <button id="generateBtn">Generate Funny Message</button>
+    <button id="resetBtn" class="secondary">Reset</button>
+    <div id="genStatus" class="small"></div>
+  </div>
+
+  <label for="aiInstruction">AI instruction (optional)</label>
+  <input id="aiInstruction" type="text" placeholder="e.g., Use a warm, slightly sarcastic tone" />
+
+  <label for="message">Message (editable)</label>
+  <textarea id="message" placeholder="Your generated message will appear here..."></textarea>
+
+  <div class="row">
+    <button id="refineBtn">Refine with AI</button>
+    <button id="shortenBtn">Make it Shorter (AI)</button>
+    <button id="funnierBtn">Make it Funnier (AI)</button>
+    <div id="refineStatus" class="small"></div>
+  </div>
+
+  <div class="status">
+    Server: <span id="serverState">unknown</span> • Last action: <span id="lastAction">none</span>
+  </div>
+
+  <script src="file.js"></script>
+</body>
+</html>
