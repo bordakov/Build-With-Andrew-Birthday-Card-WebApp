@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Birthday Card Helper</title>
   <style>
-    body { font-family: Arial, system-ui, sans-serif; max-width:760px; margin:28px auto; padding:12px; color:#222; }
+    body { font-family: Arial, system-ui, sans-serif; max-width:980px; margin:28px auto; padding:12px; color:#222; }
     label { display:block; margin-top:10px; font-weight:600; }
-    input[type="text"], input[type="number"], textarea { width:100%; padding:8px 10px; margin-top:6px; box-sizing:border-box; border:1px solid #ccc; border-radius:6px; }
+    input[type="text"], input[type="number"], textarea, select { width:100%; padding:8px 10px; margin-top:6px; box-sizing:border-box; border:1px solid #ccc; border-radius:6px; }
     textarea { min-height:120px; resize:vertical; }
     button { margin-top:12px; padding:10px 14px; border:none; border-radius:8px; background:#0066cc; color:white; cursor:pointer; }
     button.secondary { background:#666; }
@@ -15,6 +15,14 @@
     .row { display:flex; gap:10px; align-items:center; margin-top:10px; flex-wrap:wrap; }
     .small { font-size:0.9em; color:#555; }
     .status { margin-top:12px; color:#444; background:#f7f7f7; padding:10px; border-radius:6px; }
+    /* Card editor styles */
+    .card-editor { margin-top:18px; display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; }
+    .card-canvas-wrap { border:1px solid #ddd; padding:8px; background:#fff; border-radius:8px; }
+    canvas { display:block; max-width:100%; height:auto; }
+    .editor-controls { min-width:240px; flex:1; max-width:320px; }
+    .preset-thumb { width:60px; height:40px; object-fit:cover; border-radius:4px; cursor:pointer; border:1px solid #ccc; margin-right:8px; }
+    .presets { display:flex; gap:8px; align-items:center; margin-top:6px; }
+    .control-row { display:flex; gap:8px; align-items:center; margin-top:8px; }
   </style>
 </head>
 <body>
@@ -31,26 +39,78 @@
   <input id="hobby" type="text" />
 
   <div class="row">
-    <button id="generateBtn">Generate Funny Message</button>
-    <button id="resetBtn" class="secondary">Reset</button>
+    <button id="generateBtn" type="button">Generate Funny Message</button>
+    <button id="resetBtn" class="secondary" type="button">Reset</button>
     <div id="genStatus" class="small"></div>
   </div>
 
   <label for="aiInstruction">AI instruction (optional)</label>
   <input id="aiInstruction" type="text" placeholder="e.g., Use a warm, slightly sarcastic tone" />
 
+ <!-- Single control: AI Creativity -->
+  <label for="aiCreativity">AI Creativity</label>
+  <select id="aiCreativity" name="aiCreativity">
+    <option value="free">Free</option>
+    <option value="medium" selected>Medium</option>
+    <option value="none">None</option>
+  </select>
+
   <label for="message">Message (editable)</label>
   <textarea id="message" placeholder="Your generated message will appear here..."></textarea>
 
   <div class="row">
-    <button id="refineBtn">Refine with AI</button>
-    <button id="shortenBtn">Make it Shorter (AI)</button>
-    <button id="funnierBtn">Make it Funnier (AI)</button>
+    <button id="refineBtn" type="button">Refine with AI</button>
+    <button id="shortenBtn" type="button">Make it Shorter (AI)</button>
+    <button id="funnierBtn" type="button">Make it Funnier (AI)</button>
     <div id="refineStatus" class="small"></div>
   </div>
 
   <div class="status">
     Server: <span id="serverState">unknown</span> • Last action: <span id="lastAction">none</span>
+  </div>
+
+  <!-- Card editor -->
+  <h2 style="margin-top:20px">Card Editor</h2>
+  <div class="card-editor">
+    <div class="card-canvas-wrap">
+      <canvas id="cardCanvas" width="1200" height="800" aria-label="Card preview"></canvas>
+      <div style="margin-top:8px; display:flex; gap:8px;">
+        <button id="downloadBtn" type="button">Download JPEG</button>
+        <button id="copyImageBtn" type="button">Copy Image</button>
+        <button id="renderBtn" type="button" class="secondary">Render Card</button>
+      </div>
+    </div>
+
+    <div class="editor-controls">
+      <label for="bgUpload">Upload background image</label>
+      <input id="bgUpload" type="file" accept="image/*" />
+
+      <label style="margin-top:8px">Presets</label>
+      <div class="presets" id="bgPresets">
+        <!-- You can change these URLs to local images or remote ones -->
+        <img class="preset-thumb" src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=800&q=60" data-src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=1200&q=80" alt="preset1" />
+        <img class="preset-thumb" src="https://images.unsplash.com/photo-1503185912284-5271ff81b9a8?w=800&q=60" data-src="https://images.unsplash.com/photo-1503185912284-5271ff81b9a8?w=1200&q=80" alt="preset2" />
+      </div>
+
+      <label for="fontSize">Font size</label>
+      <input id="fontSize" type="number" min="16" max="200" value="48" />
+
+      <label for="fontColor">Font color</label>
+      <input id="fontColor" type="color" value="#ffffff" />
+
+      <div class="control-row">
+        <label for="textAlign">Align</label>
+        <select id="textAlign">
+          <option value="center" selected>Center</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+      </div>
+
+      <p class="small" style="margin-top:10px">
+        Drag the message on the canvas to reposition it. Click "Render Card" to update the preview, then Download or Copy.
+      </p>
+    </div>
   </div>
 
   <script src="file.js"></script>
