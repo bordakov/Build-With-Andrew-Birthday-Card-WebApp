@@ -4,7 +4,7 @@
 // - Implements a client-side card editor: background upload/presets, drag-to-position text, font/color/align controls, and render/export (JPEG / clipboard).
 // - Preserves the existing AI refine workflow and integrates rendering so the canvas updates after refines.
 (() => {
-  const DEFAULT_NAME = 'Jonh';
+  const DEFAULT_NAME = 'John';
   const DEFAULT_AGE = '25';
   const DEFAULT_HOBBY = 'AI';
   const COOLDOWN_MS = 8000; // 8s between server calls
@@ -13,7 +13,8 @@
   const ageEl = document.getElementById('age');
   const hobbyEl = document.getElementById('hobby');
   const aiInstructionEl = document.getElementById('aiInstruction');
-  const aiCreativityEl = document.getElementById('aiCreativity'); // new select
+  const aiCreativityEl = document.getElementById('aiCreativity');
+  const toneEl = document.getElementById('toneSelect');
   const msgEl = document.getElementById('message');
   const genStatus = document.getElementById('genStatus');
   const refineStatus = document.getElementById('refineStatus');
@@ -37,7 +38,6 @@
   const fontColorEl = document.getElementById('fontColor');
   const textAlignEl = document.getElementById('textAlign');
 
-  const generateBtnRef = generateBtn;
   const templates = [
     (n,a,h) => `Happy ${a}th birthday, ${n}! You're now officially a classic — like vintage books, but with better stories. Keep enjoying ${h}!`,
     (n,a,h) => `${n}, ${a} looks great on you — almost as good as your ${h} skills.`,
@@ -50,31 +50,6 @@
     const fn = templates[Math.floor(Math.random()*templates.length)];
     return fn(name, age, hobby);
   }
-
-  // Insert a small tone selector after the AI instruction input (if present)
-  (function addToneSelector() {
-    try {
-      const container = aiInstructionEl ? aiInstructionEl.parentNode : null;
-      if (!container) return;
-      const toneWrap = document.createElement('div');
-      toneWrap.style.marginTop = '8px';
-      toneWrap.innerHTML = `
-      <label for="toneSelect" style="font-weight:600;display:block;margin-top:8px">Tone</label>
-      <select id="toneSelect" style="padding:6px;border-radius:6px;border:1px solid #ccc">
-        <option value="">(none)</option>
-        <option value="Wholesome">Wholesome</option>
-        <option value="Sarcastic">Sarcastic</option>
-        <option value="Dad-joke">Dad-joke</option>
-        <option value="Klingon">Klingon</option>
-      </select>
-    `;
-      container.appendChild(toneWrap);
-      // expose element for use in buildInstruction
-      window.toneSelect = document.getElementById('toneSelect');
-    } catch (e) {
-      console.warn('Could not add tone selector', e);
-    }
-  })();
 
   // System messages driven by AI Creativity setting
   // (Friendly system used for Free/Medium; Strict editor system used for None)
@@ -98,7 +73,7 @@
   function buildInstruction(buttonInstruction, includeUser = true) {
     const rawUser = (aiInstructionEl && aiInstructionEl.value) ? aiInstructionEl.value.trim() : '';
     const user = rawUser.slice(0, 1000); // limit length
-    const tone = (window.toneSelect && window.toneSelect.value) ? window.toneSelect.value : '';
+    const tone = (toneEl && toneEl.value) ? toneEl.value : '';
     const creativity = aiCreativityEl ? aiCreativityEl.value : 'medium';
     const map = mapCreativity(creativity);
     const systemText = map.system;
@@ -108,7 +83,6 @@
     let instrCore = includeUser && user ? `${user}. ${buttonInstruction}` : buttonInstruction;
     if (includeUser && tone) instrCore = `${tone} style. ${instrCore}`;
 
-    
     // Prepend the system-like sentence (so the model sees it as part of the instruction)
     // This ensures the frontend controls "system behavior" without server changes.
     const finalInstr = `${systemText} ${instrCore}`;
@@ -174,7 +148,6 @@
     const fontSize = parseInt(fontSizeEl.value || '48', 10);
     const color = fontColorEl.value || '#fff';
     const align = textAlignEl.value || 'center';
-    const fontFamily = '48px "Arial"'; // placeholder; we'll set real font below
     const font = `${fontSize}px sans-serif`;
     ctx.textAlign = align;
     ctx.textBaseline = 'middle';
@@ -354,30 +327,9 @@
   textAlignEl.addEventListener('change', () => { renderCard(); });
 
   //
-  // Existing AI / refine logic (unchanged; integrated with new controls)
+  // AI / refine logic (integrated with controls)
   //
-  const generateBtnRefLocal = generateBtnRef;
-  const genTemplates = templates;
-
-  function buildInstruction(buttonInstruction, includeUser = true) {
-    const rawUser = (aiInstructionEl && aiInstructionEl.value) ? aiInstructionEl.value.trim() : '';
-    const user = rawUser.slice(0, 1000); // limit
-    const tone = (window.toneSelect && window.toneSelect.value) ? window.toneSelect.value : '';
-    const creativity = aiCreativityEl ? aiCreativityEl.value : 'medium';
-    const map = mapCreativity(creativity);
-    const systemText = map.system;
-    let instrCore = includeUser && user ? `${user}. ${buttonInstruction}` : buttonInstruction;
-    if (includeUser && tone) instrCore = `${tone} style. ${instrCore}`;
-    return `${systemText} ${instrCore}`;
-  }
-
-  function mapCreativity(mode) {
-    if (mode === 'free') return { temperature: 0.8, strict: false, system: SYS_FRIENDLY };
-    if (mode === 'medium') return { temperature: 0.4, strict: false, system: SYS_FRIENDLY };
-    return { temperature: 0.0, strict: true, system: SYS_STRICT };
-  }
-
-  // the callRefineServer function is the same as before (keeps cooldown, sends payload etc.)
+  // the callRefineServer function keeps cooldown, sends payload etc.
   async function callRefineServer(instruction) {
     const now = Date.now();
     if (now - lastRefineTime < COOLDOWN_MS) {
@@ -463,7 +415,7 @@
   }
 
   // generate / reset handlers (use message textarea)
-  generateBtnRefLocal.addEventListener('click', () => {
+  generateBtn.addEventListener('click', () => {
     const n = (nameEl.value || DEFAULT_NAME).trim();
     const a = (() => {
       const raw = (ageEl.value || DEFAULT_AGE).toString().trim();

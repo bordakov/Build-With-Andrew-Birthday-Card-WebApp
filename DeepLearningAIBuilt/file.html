@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Birthday Card Helper</title>
+  <title>Birthday Card Builder</title>
   <style>
     body { font-family: Arial, system-ui, sans-serif; max-width:980px; margin:28px auto; padding:12px; color:#222; }
     label { display:block; margin-top:10px; font-weight:600; }
@@ -26,9 +26,10 @@
   </style>
 </head>
 <body>
-  <h1>Birthday Card Helper</h1>
-  <p class="small">Defaults: Jonh, 25, AI. Use the AI instruction field if you want custom guidance.</p>
+  <h1>Birthday Card Builder</h1>
+  <p class="small">Defaults: John, 25, AI. Use the AI instruction field if you want custom guidance.</p>
 
+  <!-- Name, Age, Hobby controls -->
   <label for="name">Name</label>
   <input id="name" type="text" />
 
@@ -38,16 +39,18 @@
   <label for="hobby">Hobby</label>
   <input id="hobby" type="text" />
 
+  <!-- Generate & Reset buttons -->
   <div class="row">
     <button id="generateBtn" type="button">Generate Funny Message</button>
     <button id="resetBtn" class="secondary" type="button">Reset</button>
     <div id="genStatus" class="small"></div>
   </div>
 
+  <!-- AI instructions text -->
   <label for="aiInstruction">AI instruction (optional)</label>
   <input id="aiInstruction" type="text" placeholder="e.g., Use a warm, slightly sarcastic tone" />
 
- <!-- Single control: AI Creativity -->
+ <!-- AI Creativity control -->
   <label for="aiCreativity">AI Creativity</label>
   <select id="aiCreativity" name="aiCreativity">
     <option value="free">Free</option>
@@ -55,9 +58,21 @@
     <option value="none">None</option>
   </select>
 
-  <label for="message">Message (editable)</label>
+  <!-- Tone control -->
+  <label for="toneSelect">Tone</label>
+  <select id="toneSelect" name="toneSelect">
+    <option value="">(none)</option>
+    <option value="Wholesome">Wholesome</option>
+    <option value="Sarcastic">Sarcastic</option>
+    <option value="Dad-joke">Dad-joke</option>
+    <option value="Klingon">Klingon</option>
+  </select>
+
+   <!-- Birthday card message text -->
+  <label for="message">Birthday Card Message (editable)</label>
   <textarea id="message" placeholder="Your generated message will appear here..."></textarea>
 
+  <!-- AI buttons -->
   <div class="row">
     <button id="refineBtn" type="button">Refine with AI</button>
     <button id="shortenBtn" type="button">Make it Shorter (AI)</button>
@@ -65,12 +80,13 @@
     <div id="refineStatus" class="small"></div>
   </div>
 
+  <!-- AI server status -->
   <div class="status">
     Server: <span id="serverState">unknown</span> • Last action: <span id="lastAction">none</span>
   </div>
 
   <!-- Card editor -->
-  <h2 style="margin-top:20px">Card Editor</h2>
+  <h2 style="margin-top:20px">Card Canvas</h2>
   <div class="card-editor">
     <div class="card-canvas-wrap">
       <canvas id="cardCanvas" width="1200" height="800" aria-label="Card preview"></canvas>
