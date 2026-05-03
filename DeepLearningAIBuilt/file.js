@@ -34,7 +34,9 @@
   const downloadBtn = document.getElementById('downloadBtn');
   const copyImageBtn = document.getElementById('copyImageBtn');
   const renderBtn = document.getElementById('renderBtn');
+  const canvasStatus = document.getElementById('canvasStatus');
   const fontSizeEl = document.getElementById('fontSize');
+  const fontFamilyEl = document.getElementById('fontFamily');
   const fontColorEl = document.getElementById('fontColor');
   const textAlignEl = document.getElementById('textAlign');
 
@@ -44,6 +46,18 @@
     (n,a,h) => `Happy birthday, ${n}! At ${a} you're the perfect mix of wisdom and fun. Don't stop ${h}!`,
     (n,a,h) => `Congrats ${n}! ${a} years of awesome. If ${h} gave you points, you'd be a legend.`,
     (n,a,h) => `Cheers ${n}! ${a} years young and still making time for ${h}.`
+  ];
+
+  const ALLOWED_FONTS = [
+    'Arial',
+    'Helvetica',
+    'Times New Roman',
+    'Georgia',
+    'Courier New',
+    'sans-serif',
+    'Comic Sans MS',
+    'Dancing Script',
+    'Great Vibes'
   ];
 
   function simpleFunnyMessage(name, age, hobby) {
@@ -145,26 +159,33 @@
   }
 
   function drawTextOnCanvas(text) {
-    const fontSize = parseInt(fontSizeEl.value || '48', 10);
     const color = fontColorEl.value || '#fff';
     const align = textAlignEl.value || 'center';
-    const font = `${fontSize}px sans-serif`;
+
+    const fontSize = parseInt(fontSizeEl.value || '48', 10);
+    let family = (fontFamilyEl && fontFamilyEl.value) ? fontFamilyEl.value : 'Arial';
+    // validate selected font family
+    if (!ALLOWED_FONTS.includes(family)) throw new Error(`Invalid font family: ${family}`);
+    // quote family if it contains spaces
+    if (family.includes(' ')) family = `"${family}"`;
+    const font = `${fontSize}px ${family}`;
+    ctx.font = font;
+
     ctx.textAlign = align;
     ctx.textBaseline = 'middle';
     ctx.fillStyle = color;
     ctx.strokeStyle = 'rgba(0,0,0,0.35)';
-    ctx.lineWidth = Math.max(2, Math.floor(fontSize/18));
+    ctx.lineWidth = Math.max(2, Math.floor(fontSize / 18));
 
     const maxWidth = cardCanvas.width * 0.8;
     const lines = wrapTextLines(text, maxWidth, font);
     const lineHeight = fontSize * 1.2;
     // starting Y: textPos.y - (totalHeight/2) so that textPos is center of block
     const totalHeight = lines.length * lineHeight;
-    let startY = textPos.y - totalHeight/2 + lineHeight/2;
+    let startY = textPos.y - totalHeight / 2 + lineHeight / 2;
 
-    ctx.font = font;
-    for (let i=0;i<lines.length;i++) {
-      const y = startY + i*lineHeight;
+    for (let i = 0; i < lines.length; i++) {
+      const y = startY + i * lineHeight;
       // stroke for readability
       ctx.strokeText(lines[i], textPos.x, y);
       ctx.fillText(lines[i], textPos.x, y);
@@ -174,15 +195,28 @@
   function renderCard() {
     clearCanvas();
     drawBackground();
+    canvasStatus.textContent = '';
     // draw a subtle vignette for nicer text contrast
-    const g = ctx.createRadialGradient(cardCanvas.width/2, cardCanvas.height/2, cardCanvas.width/8, cardCanvas.width/2, cardCanvas.height/2, Math.max(cardCanvas.width, cardCanvas.height)/1.1);
+    const g = ctx.createRadialGradient(
+      cardCanvas.width / 2,
+      cardCanvas.height / 2,
+      cardCanvas.width / 8,
+      cardCanvas.width / 2,
+      cardCanvas.height / 2,
+      Math.max(cardCanvas.width, cardCanvas.height) / 1.1
+    );
     g.addColorStop(0, 'rgba(0,0,0,0)');
     g.addColorStop(1, 'rgba(0,0,0,0.25)');
     ctx.fillStyle = g;
-    ctx.fillRect(0,0,cardCanvas.width, cardCanvas.height);
-
+    ctx.fillRect(0, 0, cardCanvas.width, cardCanvas.height);
     const text = msgEl.value || '';
-    if (text) drawTextOnCanvas(text);
+    if (!text) return;
+    try {
+      drawTextOnCanvas(text);
+    } catch (err) {
+      canvasStatus.textContent = `Render error: ${err.message}`;
+      return;
+    }
   }
 
   // mouse/touch handling for dragging text
@@ -323,6 +357,7 @@
   // update card when message, font, color, or align changes
   msgEl.addEventListener('input', () => { renderCard(); });
   fontSizeEl.addEventListener('change', () => { renderCard(); });
+  fontFamilyEl.addEventListener('change', () => renderCard());
   fontColorEl.addEventListener('change', () => { renderCard(); });
   textAlignEl.addEventListener('change', () => { renderCard(); });
 
@@ -479,8 +514,11 @@
     aiInstructionEl.value = '';
     if (aiCreativityEl) aiCreativityEl.value = 'medium';
     msgEl.value = '';
-    // initial render
-    textPos = { x: cardCanvas.width/2, y: cardCanvas.height/2 };
-    renderCard();
+    // initial render (wait for webfonts to load)
+    textPos = { x: cardCanvas.width / 2, y: cardCanvas.height / 2 };
+    (async () => {
+      await document.fonts.ready;
+      renderCard();
+    })();
   });
 })();
