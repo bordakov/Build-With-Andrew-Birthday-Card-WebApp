@@ -108,34 +108,50 @@
     [generateBtn, resetBtn, refineBtn, shortenBtn, funnierBtn].forEach(b => { if (b) b.disabled = disabled; });
   }
 
+  function adjustCanvasForDPR() {
+    const ratio = window.devicePixelRatio || 1;
+    const cssW = parseInt(cardCanvas.getAttribute('data-css-width') || '800', 10);
+    const cssH = parseInt(cardCanvas.getAttribute('data-css-height') || '533', 10);
+    cardCanvas.width = Math.round(cssW * ratio);
+    cardCanvas.height = Math.round(cssH * ratio);
+    cardCanvas.style.width = cssW + 'px';
+    cardCanvas.style.height = cssH + 'px';
+    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  }
+
+  function cssCanvasWidth() { return cardCanvas.width / (window.devicePixelRatio || 1); }
+
+  function cssCanvasHeight() { return cardCanvas.height / (window.devicePixelRatio || 1); }
+
   //
   // Card editor state & helpers
   //
   let bgImage = null;
-  let textPos = { x: cardCanvas.width/2, y: cardCanvas.height/2 };
+  let textPos = { x:0, y:0 };
   let dragging = false;
   let dragOffset = { x:0, y:0 };
 
   function clearCanvas() {
-    ctx.clearRect(0,0,cardCanvas.width, cardCanvas.height);
+    ctx.clearRect(0, 0, cssCanvasWidth(), cssCanvasHeight());
   }
 
   function drawBackground() {
     if (!bgImage) {
       // draw simple gradient background
-      const g = ctx.createLinearGradient(0,0,0,cardCanvas.height);
+      const cw = cssCanvasWidth(), ch = cssCanvasHeight();
+      const g = ctx.createLinearGradient(0, 0, 0, ch);
       g.addColorStop(0, '#ffefba');
       g.addColorStop(1, '#ffffff');
       ctx.fillStyle = g;
-      ctx.fillRect(0,0,cardCanvas.width, cardCanvas.height);
+      ctx.fillRect(0, 0, cw, ch);
       return;
     }
     // draw the background covering the canvas (cover behavior)
-    const cw = cardCanvas.width, ch = cardCanvas.height;
+    const cw = cssCanvasWidth(), ch = cssCanvasHeight();
     const iw = bgImage.width, ih = bgImage.height;
-    const scale = Math.max(cw/iw, ch/ih);
+    const scale = Math.max(cw / iw, ch / ih);
     const w = iw * scale, h = ih * scale;
-    const dx = (cw - w)/2, dy = (ch - h)/2;
+    const dx = (cw - w) / 2, dy = (ch - h) / 2;
     ctx.drawImage(bgImage, dx, dy, w, h);
   }
 
@@ -177,7 +193,7 @@
     ctx.strokeStyle = 'rgba(0,0,0,0.35)';
     ctx.lineWidth = Math.max(2, Math.floor(fontSize / 18));
 
-    const maxWidth = cardCanvas.width * 0.8;
+    const maxWidth = cssCanvasWidth() * 0.8;
     const lines = wrapTextLines(text, maxWidth, font);
     const lineHeight = fontSize * 1.2;
     // starting Y: textPos.y - (totalHeight/2) so that textPos is center of block
@@ -197,18 +213,13 @@
     drawBackground();
     canvasStatus.textContent = '';
     // draw a subtle vignette for nicer text contrast
-    const g = ctx.createRadialGradient(
-      cardCanvas.width / 2,
-      cardCanvas.height / 2,
-      cardCanvas.width / 8,
-      cardCanvas.width / 2,
-      cardCanvas.height / 2,
-      Math.max(cardCanvas.width, cardCanvas.height) / 1.1
-    );
+    const cw = cssCanvasWidth();
+    const ch = cssCanvasHeight();
+    const g = ctx.createRadialGradient(cw / 2, ch / 2, cw / 8, cw / 2, ch / 2, Math.max(cw, ch) / 1.1);
     g.addColorStop(0, 'rgba(0,0,0,0)');
     g.addColorStop(1, 'rgba(0,0,0,0.25)');
     ctx.fillStyle = g;
-    ctx.fillRect(0, 0, cardCanvas.width, cardCanvas.height);
+    ctx.fillRect(0, 0, cw, ch);
     const text = msgEl.value || '';
     if (!text) return;
     try {
@@ -228,21 +239,27 @@
     } else {
       clientX = evt.clientX; clientY = evt.clientY;
     }
-    return { x: (clientX - rect.left) * (cardCanvas.width / rect.width), y: (clientY - rect.top) * (cardCanvas.height / rect.height) };
+    return { x: clientX - rect.left, y: clientY - rect.top };
   }
 
   function isPointOnText(px, py) {
     // rough hit test: compute text block area
     const fontSize = parseInt(fontSizeEl.value || '48', 10);
-    const maxWidth = cardCanvas.width * 0.8;
-    const font = `${fontSize}px sans-serif`;
+    const familyRaw = (fontFamilyEl && fontFamilyEl.value) ? fontFamilyEl.value : 'Arial';
+    const family = familyRaw.includes(' ') ? `"${familyRaw}"` : familyRaw;
+    const font = `${fontSize}px ${family}`;
     ctx.font = font;
+    const maxWidth = cssCanvasWidth() * 0.8;
     const lines = wrapTextLines(msgEl.value || '', maxWidth, font);
     const lineHeight = fontSize * 1.2;
     const totalHeight = lines.length * lineHeight;
-    const left = textAlignEl.value === 'left' ? textPos.x : (textAlignEl.value === 'right' ? textPos.x - maxWidth/2 : textPos.x - maxWidth/2);
+    const align = textAlignEl.value || 'center';
+    let left;
+    if (align === 'left') left = textPos.x;
+    else if (align === 'right') left = textPos.x - maxWidth;
+    else left = textPos.x - maxWidth / 2;
     const right = left + maxWidth;
-    const top = textPos.y - totalHeight/2;
+    const top = textPos.y - totalHeight / 2;
     const bottom = top + totalHeight;
     // use simpler check: check if point is within a rectangle around center with width=maxWidth and height=totalHeight
     return px >= left && px <= right && py >= top && py <= bottom;
@@ -515,10 +532,18 @@
     if (aiCreativityEl) aiCreativityEl.value = 'medium';
     msgEl.value = '';
     // initial render (wait for webfonts to load)
-    textPos = { x: cardCanvas.width / 2, y: cardCanvas.height / 2 };
     (async () => {
+      adjustCanvasForDPR();
+      textPos = { x: cssCanvasWidth()/2, y: cssCanvasHeight()/2 };
       await document.fonts.ready;
       renderCard();
     })();
+  });
+
+  // resize
+  window.addEventListener('resize', () => {
+    adjustCanvasForDPR();
+    textPos = { x: cssCanvasWidth()/2, y: cssCanvasHeight()/2 };
+    renderCard();
   });
 })();
