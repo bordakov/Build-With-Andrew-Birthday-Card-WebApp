@@ -50,14 +50,16 @@
 
   const ALLOWED_FONTS = [
     'Arial',
-    'Helvetica',
+    'sans-serif',
     'Times New Roman',
     'Georgia',
     'Courier New',
-    'sans-serif',
+    'Lucida Calligraphy',
+    'Great Vibes',
+    'Edwardian Script ITC',
     'Comic Sans MS',
-    'Dancing Script',
-    'Great Vibes'
+    'Lucida Handwriting',
+    'Segoe Script'
   ];
 
   function simpleFunnyMessage(name, age, hobby) {
@@ -374,7 +376,14 @@
   // update card when message, font, color, or align changes
   msgEl.addEventListener('input', () => { renderCard(); });
   fontSizeEl.addEventListener('change', () => { renderCard(); });
-  fontFamilyEl.addEventListener('change', () => renderCard());
+  fontFamilyEl.addEventListener('change', async () => {
+    const familyRaw = fontFamilyEl.value;
+    // Ensure the selected webfont is loaded before rendering to avoid fallback rendering
+    try {
+      await document.fonts.load(`1em "${familyRaw}"`);
+    } catch (e) { /* ignore load errors */ }
+    renderCard();
+  });
   fontColorEl.addEventListener('change', () => { renderCard(); });
   textAlignEl.addEventListener('change', () => { renderCard(); });
 
