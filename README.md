@@ -11,11 +11,13 @@ This repository contains small web application(s) for creating birthday cards.
 
 ## Project Structure
 
-### `DeepLearningAIBuilt/`
+### `Birthday-Card-WebApp/DeepLearningAIStartedChatGPTFinished/`
 
-A simple web application for generating funny birthday card messages.  
-This particular app was created using the internal AI chat of the DeepLearning.AI course.  
-The app allows you to input a name, age, and hobby, generate a message, and refine it using AI.
+A simple web application for generating funny birthday cards.  
+This particular app was started with the internal AI chat of the DeepLearning.AI course and continued with ChatGPT.  
+The app allows you to input a name, age, and hobby, generate a message, refine it using AI,  
+load or upload a birthday card image, customize layout and design (font, size, color, alignment),  
+position the message on the card, and export the final result as text or image.
 
 Inside this folder:
 
@@ -61,7 +63,7 @@ Configuration files for environment variables.
 
 ### 1. Get the application files
 
-Fetch the contents of the `DeepLearningAIBuilt` folder from this repository into a local folder on your machine (the folder name can be anything).
+Fetch the contents of the `Birthday-Card-WebApp/DeepLearningAIStartedChatGPTFinished/` folder from this repository into a local folder on your machine (the folder name can be anything).
 
 For example, you can download the repository as a ZIP or clone it using Git.
 
@@ -132,7 +134,17 @@ http://127.0.0.1:5000
    * Make it Shorter
    * Make it Funnier
 
-4. Copy the final message
+4. Customize the birthday card appearance:
+
+   * Select or upload a background image
+   * Adjust font family, size, and color
+   * Choose text alignment
+   * Drag and position the message on the card
+
+5. Export or copy the result:
+
+   * Copy the message text
+   * Download or copy the rendered card image
 
 ---
 
